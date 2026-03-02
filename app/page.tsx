@@ -1,24 +1,27 @@
-export default function Home() {
-  console.log("SUPABASE URL:", process.env.NEXT_PUBLIC_SUPABASE_URL);
+import { redirect } from "next/navigation";
+import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
+
+export default async function HomePage() {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+
+  // If logged in → go to dashboard
+  if (data.user) {
+    redirect("/dashboard");
+  }
+
+  // If NOT logged in → show login button only
   return (
-    <main className="min-h-screen bg-blue-900 text-white flex flex-col items-center justify-center gap-6">
-      <h1 className="text-5xl font-bold">Family Feud Builder</h1>
+    <main className="min-h-screen flex flex-col items-center justify-center gap-6 p-6">
+      <h1 className="text-4xl font-bold">Family Feud Labs</h1>
 
-      <div className="flex gap-6">
-        <a
-          href="/create"
-          className="bg-yellow-400 text-black px-6 py-3 rounded-xl font-semibold hover:bg-yellow-300 transition"
-        >
-          Create Game
-        </a>
-
-        <a
-          href="/play"
-          className="bg-white text-blue-900 px-6 py-3 rounded-xl font-semibold hover:bg-gray-200 transition"
-        >
-          Play Game
-        </a>
-      </div>
+      <Link
+        href="/login"
+        className="rounded-lg bg-blue-700 px-6 py-3 text-white font-semibold"
+      >
+        Login / Register
+      </Link>
     </main>
   );
 }
