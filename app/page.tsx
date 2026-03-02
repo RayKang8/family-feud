@@ -1,4 +1,5 @@
 export default function Home() {
+  console.log("SUPABASE URL:", process.env.NEXT_PUBLIC_SUPABASE_URL);
   return (
     <main className="min-h-screen bg-blue-900 text-white flex flex-col items-center justify-center gap-6">
       <h1 className="text-5xl font-bold">Family Feud Builder</h1>
