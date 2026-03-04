@@ -1,25 +1,47 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const router = useRouter();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
 
   async function login() {
+    if (busy) return;
+    setBusy(true);
+
     const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+    setBusy(false);
     if (error) return alert(error.message);
-    router.push("/dashboard");
+
+    router.replace("/dashboard");
   }
 
   async function register() {
-    const { error } = await supabase.auth.signUp({ email, password });
+    if (busy) return;
+    setBusy(true);
+
+    const { data, error } = await supabase.auth.signUp({ email, password });
+
+    setBusy(false);
     if (error) return alert(error.message);
-    alert("Registered! If email confirmation is enabled, check your inbox.");
+
+    // If email confirmation is OFF, user is logged in immediately
+    if (data.session) {
+      router.replace("/dashboard");
+      return;
+    }
+
+    // If email confirmation is ON
+    alert("Registered! Check your email to confirm, then log in.");
+    router.replace("/login");
   }
 
   return (
@@ -33,6 +55,7 @@ export default function LoginPage() {
           onChange={(e) => setEmail(e.target.value)}
           type="email"
           placeholder="Email"
+          autoComplete="email"
         />
         <input
           className="w-full border rounded-lg p-2 mb-5"
@@ -40,13 +63,23 @@ export default function LoginPage() {
           onChange={(e) => setPassword(e.target.value)}
           type="password"
           placeholder="Password"
+          autoComplete="current-password"
         />
 
-        <button onClick={login} className="w-full rounded-lg bg-blue-700 text-white py-2 font-semibold">
-          Login
+        <button
+          onClick={login}
+          disabled={busy}
+          className="w-full rounded-lg bg-blue-700 text-white py-2 font-semibold disabled:opacity-60"
+        >
+          {busy ? "Working..." : "Login"}
         </button>
-        <button onClick={register} className="w-full rounded-lg bg-green-600 text-white py-2 font-semibold mt-3">
-          Register
+
+        <button
+          onClick={register}
+          disabled={busy}
+          className="w-full rounded-lg bg-green-600 text-white py-2 font-semibold mt-3 disabled:opacity-60"
+        >
+          {busy ? "Working..." : "Register"}
         </button>
       </div>
     </div>
