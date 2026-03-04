@@ -20,11 +20,11 @@ export default function DashboardPage() {
   const [games, setGames] = useState<GameRow[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   async function requireUserOrRedirect() {
     const { data, error } = await supabase.auth.getUser();
     if (error) {
-      // treat as logged out if auth fails
       router.replace("/login");
       return null;
     }
@@ -46,6 +46,8 @@ export default function DashboardPage() {
     const { data, error } = await supabase
       .from("games")
       .select("id,title,created_at")
+      // IMPORTANT: only show THIS user's games
+      .eq("owner_id", user.id)
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -74,7 +76,6 @@ export default function DashboardPage() {
       return;
     }
 
-    // Create a new game row, then send user to builder /create/[gameId]
     const { data, error } = await supabase
       .from("games")
       .insert({ title: "Untitled Game", owner_id: user.id })
@@ -90,6 +91,21 @@ export default function DashboardPage() {
     router.push(`/create/${data.id}`);
   }
 
+  async function logout() {
+    if (loggingOut) return;
+    setLoggingOut(true);
+    setError(null);
+
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      setError(error.message);
+      setLoggingOut(false);
+      return;
+    }
+
+    router.replace("/login");
+  }
+
   if (loading) {
     return <main className="min-h-screen p-8">Loading...</main>;
   }
@@ -102,13 +118,23 @@ export default function DashboardPage() {
           <p className="mt-2 opacity-80">Logged in as: {userEmail}</p>
         </div>
 
-        <button
-          onClick={createNewGame}
-          disabled={creating}
-          className="rounded-lg bg-blue-700 px-4 py-2 text-white font-semibold disabled:opacity-60"
-        >
-          {creating ? "Creating..." : "+ Create New Game"}
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={createNewGame}
+            disabled={creating}
+            className="rounded-lg bg-blue-700 px-4 py-2 text-white font-semibold disabled:opacity-60"
+          >
+            {creating ? "Creating..." : "+ Create New Game"}
+          </button>
+
+          <button
+            onClick={logout}
+            disabled={loggingOut}
+            className="rounded-lg bg-red-600 px-4 py-2 text-white font-semibold disabled:opacity-60"
+          >
+            {loggingOut ? "Logging out..." : "Logout"}
+          </button>
+        </div>
       </div>
 
       <h2 className="text-xl font-semibold mt-10 mb-4">My Games</h2>
