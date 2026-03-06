@@ -33,32 +33,33 @@ export default function LoginPage() {
     setBusy(false);
     if (error) return alert(error.message);
 
-    // If email confirmation is OFF, user is logged in immediately
     if (data.session) {
       router.replace("/dashboard");
       return;
     }
 
-    // If email confirmation is ON
     alert("Registered! Check your email to confirm, then log in.");
     router.replace("/login");
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-blue-950 p-6">
-      <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-2xl">
-        <h1 className="text-2xl font-bold text-center mb-6">Family Feud Labs</h1>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-950 via-blue-900 to-blue-950 p-6">
+      <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-2xl border border-gray-200">
+        <h1 className="text-3xl font-bold text-center text-gray-900 mb-6">
+          Family Feud Labs
+        </h1>
 
         <input
-          className="w-full border rounded-lg p-2 mb-3"
+          className="w-full border border-gray-300 rounded-lg p-3 mb-3 text-gray-900 placeholder-gray-400 bg-white"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           type="email"
           placeholder="Email"
           autoComplete="email"
         />
+
         <input
-          className="w-full border rounded-lg p-2 mb-5"
+          className="w-full border border-gray-300 rounded-lg p-3 mb-5 text-gray-900 placeholder-gray-400 bg-white"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           type="password"
@@ -69,7 +70,7 @@ export default function LoginPage() {
         <button
           onClick={login}
           disabled={busy}
-          className="w-full rounded-lg bg-blue-700 text-white py-2 font-semibold disabled:opacity-60"
+          className="w-full rounded-lg bg-blue-700 text-white py-3 font-semibold disabled:opacity-60"
         >
           {busy ? "Working..." : "Login"}
         </button>
@@ -77,7 +78,7 @@ export default function LoginPage() {
         <button
           onClick={register}
           disabled={busy}
-          className="w-full rounded-lg bg-green-600 text-white py-2 font-semibold mt-3 disabled:opacity-60"
+          className="w-full rounded-lg bg-green-600 text-white py-3 font-semibold mt-3 disabled:opacity-60"
         >
           {busy ? "Working..." : "Register"}
         </button>

@@ -204,25 +204,18 @@ export default function PlayGamePage() {
       <button
         disabled={!a}
         onClick={() => a && revealAnswer(qId, a.id)}
-        className="group w-full perspective-[1200px] disabled:opacity-60"
+        className="group w-full [perspective:1200px] disabled:opacity-60"
       >
         <div
           className={[
             "relative min-h-[88px] w-full transition-transform duration-500 [transform-style:preserve-3d]",
-            revealedNow || isFlipping ? "rotate-x-180" : "",
+            revealedNow || isFlipping ? "[transform:rotateX(180deg)]" : "",
           ].join(" ")}
         >
-          {/* Front */}
-          <div
-            className={[
-              "absolute inset-0 [backface-visibility:hidden] rounded-2xl border px-5 py-4 shadow-2xl",
-              "border-yellow-400/35 bg-gradient-to-b from-blue-700 via-blue-800 to-blue-950",
-              "group-hover:border-yellow-300/50",
-            ].join(" ")}
-          >
+          <div className="absolute inset-0 [backface-visibility:hidden] rounded-2xl border border-orange-300/40 bg-gradient-to-b from-blue-700 via-blue-800 to-blue-950 px-5 py-4 shadow-[0_0_0_1px_rgba(251,146,60,0.18),0_8px_20px_rgba(0,0,0,0.45)]">
             <div className="flex h-full items-center justify-between gap-4">
               <div className="flex items-center gap-4">
-                <div className="h-11 w-11 rounded-lg border border-yellow-300/30 bg-black/25 flex items-center justify-center text-xl font-black text-yellow-300 shadow-inner">
+                <div className="h-11 w-11 rounded-lg border border-orange-300/40 bg-black/25 flex items-center justify-center text-xl font-black text-orange-200 shadow-inner">
                   {slotIndex + 1}
                 </div>
 
@@ -231,27 +224,28 @@ export default function PlayGamePage() {
                 </div>
               </div>
 
-              <div className="min-w-16 text-right text-3xl font-black text-yellow-200" />
+              <div className="min-w-16 text-right text-3xl font-black text-orange-200" />
             </div>
           </div>
 
-          {/* Back */}
-          <div
-            className={[
-              "absolute inset-0 [backface-visibility:hidden] [transform:rotateX(180deg)] rounded-2xl border px-5 py-4 shadow-2xl",
-              revealedNow
-                ? "border-yellow-300/60 bg-gradient-to-b from-amber-200 via-yellow-300 to-amber-500 shadow-[0_0_30px_rgba(250,204,21,0.35)]"
-                : "border-yellow-400/35 bg-gradient-to-b from-blue-700 via-blue-800 to-blue-950",
-            ].join(" ")}
-          >
-            <div className="flex h-full items-center justify-between gap-4">
+          <div className="absolute inset-0 [backface-visibility:hidden] [transform:rotateX(180deg)] rounded-2xl border px-5 py-4 shadow-2xl">
+            <div
+              className={[
+                "absolute inset-0 rounded-2xl",
+                revealedNow
+                  ? "border border-orange-200/60 bg-gradient-to-b from-orange-200 via-amber-300 to-orange-500 shadow-[0_0_25px_rgba(251,146,60,0.38)]"
+                  : "border border-orange-300/40 bg-gradient-to-b from-blue-700 via-blue-800 to-blue-950",
+              ].join(" ")}
+            />
+
+            <div className="relative flex h-full items-center justify-between gap-4">
               <div className="flex items-center gap-4">
                 <div
                   className={[
                     "h-11 w-11 rounded-lg flex items-center justify-center text-xl font-black shadow-inner",
                     revealedNow
-                      ? "border border-amber-700/30 bg-amber-100 text-amber-900"
-                      : "border border-yellow-300/30 bg-black/25 text-yellow-300",
+                      ? "border border-orange-700/30 bg-orange-100 text-orange-900"
+                      : "border border-orange-300/30 bg-black/25 text-orange-200",
                   ].join(" ")}
                 >
                   {slotIndex + 1}
@@ -260,7 +254,7 @@ export default function PlayGamePage() {
                 <div
                   className={[
                     "text-2xl font-black tracking-wide",
-                    revealedNow ? "text-amber-950" : "text-yellow-100",
+                    revealedNow ? "text-orange-950" : "text-yellow-100",
                   ].join(" ")}
                 >
                   {a ? a.text : "────────"}
@@ -270,7 +264,7 @@ export default function PlayGamePage() {
               <div
                 className={[
                   "min-w-16 text-right text-3xl font-black tabular-nums",
-                  revealedNow ? "text-amber-950" : "text-yellow-200",
+                  revealedNow ? "text-orange-950" : "text-orange-200",
                 ].join(" ")}
               >
                 {a ? a.points : ""}
@@ -283,7 +277,7 @@ export default function PlayGamePage() {
   }
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,_#123a8f_0%,_#07152f_55%,_#030712_100%)] p-8 text-white">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top,_#273c88_0%,_#10214d_40%,_#170d0a_75%,_#09090b_100%)] p-8 text-white">
       {showX && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45">
           <div className="animate-pulse text-[180px] font-black text-red-600 drop-shadow-[0_0_30px_rgba(255,0,0,0.75)]">
@@ -295,10 +289,10 @@ export default function PlayGamePage() {
       <div className="mx-auto max-w-7xl">
         <div className="flex justify-between gap-6">
           <div>
-            <h1 className="text-4xl font-black tracking-tight text-yellow-200">
+            <h1 className="text-4xl font-black tracking-tight text-orange-200">
               {game.title}
             </h1>
-            <div className="mt-2 text-sm text-yellow-100/70">
+            <div className="mt-2 text-sm text-orange-100/70">
               Question {qIndex + 1} / {questions.length} • Press X for buzzer • Press 1–9 to reveal
             </div>
           </div>
@@ -313,16 +307,16 @@ export default function PlayGamePage() {
 
             <button
               onClick={() => router.push(`/create/${gameId}`)}
-              className="rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-500"
+              className="rounded-lg bg-orange-500 px-4 py-2 font-semibold text-white hover:bg-orange-400"
             >
               Edit Game
             </button>
           </div>
         </div>
 
-        <div className="mt-8 rounded-[28px] border border-yellow-300/30 bg-gradient-to-b from-[#163f9d] via-[#0a2560] to-[#05122d] p-2 shadow-[0_0_0_2px_rgba(250,204,21,0.08),0_0_35px_rgba(0,0,0,0.45)]">
-          <div className="rounded-[22px] border border-yellow-200/20 bg-black/20 p-6">
-            <div className="mb-3 text-sm font-bold uppercase tracking-[0.2em] text-yellow-200/70">
+        <div className="mt-8 rounded-[30px] border border-orange-300/35 bg-gradient-to-b from-orange-400/20 via-orange-300/10 to-transparent p-3 shadow-[0_0_0_2px_rgba(251,146,60,0.15),0_0_40px_rgba(251,146,60,0.12)]">
+          <div className="rounded-[24px] border border-orange-200/20 bg-gradient-to-b from-[#1c3f97] via-[#0b2460] to-[#061532] p-6">
+            <div className="mb-3 text-sm font-bold uppercase tracking-[0.2em] text-orange-200/70">
               Prompt
             </div>
             <div className="text-4xl font-black tracking-tight text-white">
@@ -331,18 +325,20 @@ export default function PlayGamePage() {
           </div>
         </div>
 
-        <div className="mt-8 rounded-[28px] border border-yellow-300/30 bg-gradient-to-b from-[#1845aa] via-[#0b2c73] to-[#061634] p-4 shadow-[0_0_0_2px_rgba(250,204,21,0.08),0_0_45px_rgba(0,0,0,0.55)]">
-          <div className="grid grid-cols-2 gap-5">
-            <div className="space-y-4">
-              {left.map((a, i) => (
-                <Tile key={a.id} slotIndex={i * 2} a={a} />
-              ))}
-            </div>
+        <div className="mt-8 rounded-[30px] border border-orange-300/35 bg-gradient-to-b from-orange-400/20 via-orange-300/10 to-transparent p-4 shadow-[0_0_0_2px_rgba(251,146,60,0.15),0_0_45px_rgba(0,0,0,0.55)]">
+          <div className="rounded-[24px] bg-gradient-to-b from-[#1a3f9d] via-[#0b2d73] to-[#071632] p-4">
+            <div className="grid grid-cols-2 gap-5">
+              <div className="space-y-4">
+                {left.map((a, i) => (
+                  <Tile key={a.id} slotIndex={i * 2} a={a} />
+                ))}
+              </div>
 
-            <div className="space-y-4">
-              {right.map((a, i) => (
-                <Tile key={a.id} slotIndex={i * 2 + 1} a={a} />
-              ))}
+              <div className="space-y-4">
+                {right.map((a, i) => (
+                  <Tile key={a.id} slotIndex={i * 2 + 1} a={a} />
+                ))}
+              </div>
             </div>
           </div>
         </div>
