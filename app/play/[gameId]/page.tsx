@@ -36,6 +36,7 @@ export default function PlayGamePage() {
   const [qIndex, setQIndex] = useState(0);
   const [revealed, setRevealed] = useState<Record<string, Record<string, true>>>({});
   const [showX, setShowX] = useState(false);
+  const [revealingId, setRevealingId] = useState<string | null>(null);
 
   function flashX() {
     setShowX(true);
@@ -109,7 +110,6 @@ export default function PlayGamePage() {
     }
 
     const grouped: Record<string, AnswerRow[]> = {};
-
     for (const a of aRes.data ?? []) {
       (grouped[a.question_id] ??= []).push(a);
     }
@@ -131,21 +131,28 @@ export default function PlayGamePage() {
 
   function revealAnswer(questionId: string, answerId: string) {
     if (isRevealed(questionId, answerId)) return;
+    if (revealingId) return;
 
-    setRevealed((prev) => ({
-      ...prev,
-      [questionId]: { ...(prev[questionId] ?? {}), [answerId]: true },
-    }));
+    setRevealingId(answerId);
 
-    playRevealSound();
+    setTimeout(() => {
+      setRevealed((prev) => ({
+        ...prev,
+        [questionId]: { ...(prev[questionId] ?? {}), [answerId]: true },
+      }));
+      playRevealSound();
+      setRevealingId(null);
+    }, 220);
   }
 
   function nextQuestion() {
     setQIndex((i) => Math.min(i + 1, questions.length - 1));
+    setRevealingId(null);
   }
 
   function prevQuestion() {
     setQIndex((i) => Math.max(i - 1, 0));
+    setRevealingId(null);
   }
 
   useEffect(() => {
@@ -170,7 +177,6 @@ export default function PlayGamePage() {
       }
 
       const n = Number(e.key);
-
       if (Number.isFinite(n) && n >= 1 && n <= 9) {
         const idx = n - 1;
         const ans = currentAnswers[idx];
@@ -180,7 +186,7 @@ export default function PlayGamePage() {
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [currentQ, currentAnswers]);
+  }, [currentQ, currentAnswers, revealingId]);
 
   if (loading) return <main className="min-h-screen p-8">Loading...</main>;
   if (error) return <main className="min-h-screen p-8">Error: {error}</main>;
@@ -192,26 +198,84 @@ export default function PlayGamePage() {
   function Tile({ slotIndex, a }: { slotIndex: number; a?: AnswerRow }) {
     const qId = currentQ!.id;
     const revealedNow = a ? isRevealed(qId, a.id) : false;
+    const isFlipping = a ? revealingId === a.id : false;
 
     return (
       <button
         disabled={!a}
         onClick={() => a && revealAnswer(qId, a.id)}
-        className="w-full rounded-xl border border-white/15 bg-gradient-to-b from-blue-900/40 to-blue-950/40 px-5 py-4 text-left shadow-lg"
+        className="group w-full perspective-[1200px] disabled:opacity-60"
       >
-        <div className="flex justify-between">
-          <div className="flex gap-4 items-center">
-            <div className="h-10 w-10 flex items-center justify-center bg-black/40 rounded font-bold">
-              {slotIndex + 1}
-            </div>
+        <div
+          className={[
+            "relative min-h-[88px] w-full transition-transform duration-500 [transform-style:preserve-3d]",
+            revealedNow || isFlipping ? "rotate-x-180" : "",
+          ].join(" ")}
+        >
+          {/* Front */}
+          <div
+            className={[
+              "absolute inset-0 [backface-visibility:hidden] rounded-2xl border px-5 py-4 shadow-2xl",
+              "border-yellow-400/35 bg-gradient-to-b from-blue-700 via-blue-800 to-blue-950",
+              "group-hover:border-yellow-300/50",
+            ].join(" ")}
+          >
+            <div className="flex h-full items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="h-11 w-11 rounded-lg border border-yellow-300/30 bg-black/25 flex items-center justify-center text-xl font-black text-yellow-300 shadow-inner">
+                  {slotIndex + 1}
+                </div>
 
-            <div className="text-xl font-extrabold">
-              {a ? (revealedNow ? a.text : "────────") : "────────"}
+                <div className="text-2xl font-black tracking-widest text-yellow-100">
+                  {a ? "────────" : "────────"}
+                </div>
+              </div>
+
+              <div className="min-w-16 text-right text-3xl font-black text-yellow-200" />
             </div>
           </div>
 
-          <div className="text-2xl font-extrabold">
-            {a ? (revealedNow ? a.points : "") : ""}
+          {/* Back */}
+          <div
+            className={[
+              "absolute inset-0 [backface-visibility:hidden] [transform:rotateX(180deg)] rounded-2xl border px-5 py-4 shadow-2xl",
+              revealedNow
+                ? "border-yellow-300/60 bg-gradient-to-b from-amber-200 via-yellow-300 to-amber-500 shadow-[0_0_30px_rgba(250,204,21,0.35)]"
+                : "border-yellow-400/35 bg-gradient-to-b from-blue-700 via-blue-800 to-blue-950",
+            ].join(" ")}
+          >
+            <div className="flex h-full items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div
+                  className={[
+                    "h-11 w-11 rounded-lg flex items-center justify-center text-xl font-black shadow-inner",
+                    revealedNow
+                      ? "border border-amber-700/30 bg-amber-100 text-amber-900"
+                      : "border border-yellow-300/30 bg-black/25 text-yellow-300",
+                  ].join(" ")}
+                >
+                  {slotIndex + 1}
+                </div>
+
+                <div
+                  className={[
+                    "text-2xl font-black tracking-wide",
+                    revealedNow ? "text-amber-950" : "text-yellow-100",
+                  ].join(" ")}
+                >
+                  {a ? a.text : "────────"}
+                </div>
+              </div>
+
+              <div
+                className={[
+                  "min-w-16 text-right text-3xl font-black tabular-nums",
+                  revealedNow ? "text-amber-950" : "text-yellow-200",
+                ].join(" ")}
+              >
+                {a ? a.points : ""}
+              </div>
+            </div>
           </div>
         </div>
       </button>
@@ -219,76 +283,87 @@ export default function PlayGamePage() {
   }
 
   return (
-    <main className="min-h-screen p-8">
-
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top,_#123a8f_0%,_#07152f_55%,_#030712_100%)] p-8 text-white">
       {showX && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="text-[160px] font-black text-red-600 drop-shadow-[0_0_25px_rgba(255,0,0,0.6)]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45">
+          <div className="animate-pulse text-[180px] font-black text-red-600 drop-shadow-[0_0_30px_rgba(255,0,0,0.75)]">
             X
           </div>
         </div>
       )}
 
-      <div className="flex justify-between">
-        <div>
-          <h1 className="text-4xl font-extrabold">{game.title}</h1>
-          <div className="opacity-70 mt-2">
-            Question {qIndex + 1} / {questions.length} • Press X for buzzer
+      <div className="mx-auto max-w-7xl">
+        <div className="flex justify-between gap-6">
+          <div>
+            <h1 className="text-4xl font-black tracking-tight text-yellow-200">
+              {game.title}
+            </h1>
+            <div className="mt-2 text-sm text-yellow-100/70">
+              Question {qIndex + 1} / {questions.length} • Press X for buzzer • Press 1–9 to reveal
+            </div>
+          </div>
+
+          <div className="flex gap-3">
+            <button
+              onClick={() => router.push("/dashboard")}
+              className="rounded-lg border border-white/15 bg-white/10 px-4 py-2 font-semibold hover:bg-white/15"
+            >
+              Back
+            </button>
+
+            <button
+              onClick={() => router.push(`/create/${gameId}`)}
+              className="rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-500"
+            >
+              Edit Game
+            </button>
           </div>
         </div>
 
-        <div className="flex gap-3">
+        <div className="mt-8 rounded-[28px] border border-yellow-300/30 bg-gradient-to-b from-[#163f9d] via-[#0a2560] to-[#05122d] p-2 shadow-[0_0_0_2px_rgba(250,204,21,0.08),0_0_35px_rgba(0,0,0,0.45)]">
+          <div className="rounded-[22px] border border-yellow-200/20 bg-black/20 p-6">
+            <div className="mb-3 text-sm font-bold uppercase tracking-[0.2em] text-yellow-200/70">
+              Prompt
+            </div>
+            <div className="text-4xl font-black tracking-tight text-white">
+              {currentQ?.prompt}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-8 rounded-[28px] border border-yellow-300/30 bg-gradient-to-b from-[#1845aa] via-[#0b2c73] to-[#061634] p-4 shadow-[0_0_0_2px_rgba(250,204,21,0.08),0_0_45px_rgba(0,0,0,0.55)]">
+          <div className="grid grid-cols-2 gap-5">
+            <div className="space-y-4">
+              {left.map((a, i) => (
+                <Tile key={a.id} slotIndex={i * 2} a={a} />
+              ))}
+            </div>
+
+            <div className="space-y-4">
+              {right.map((a, i) => (
+                <Tile key={a.id} slotIndex={i * 2 + 1} a={a} />
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-10 flex justify-between">
           <button
-            onClick={() => router.push("/dashboard")}
-            className="rounded-lg bg-white/10 px-4 py-2 font-semibold"
+            onClick={prevQuestion}
+            disabled={qIndex === 0}
+            className="rounded-xl border border-white/15 bg-white/10 px-6 py-3 font-bold hover:bg-white/15 disabled:opacity-50"
           >
-            Back
+            ← Previous
           </button>
 
           <button
-            onClick={() => router.push(`/create/${gameId}`)}
-            className="rounded-lg bg-blue-700 px-4 py-2 font-semibold text-white"
+            onClick={nextQuestion}
+            disabled={qIndex >= questions.length - 1}
+            className="rounded-xl border border-white/15 bg-white/10 px-6 py-3 font-bold hover:bg-white/15 disabled:opacity-50"
           >
-            Edit Game
+            Next →
           </button>
         </div>
-      </div>
-
-      <div className="mt-8 border border-yellow-400/25 p-6 rounded-2xl">
-        <div className="text-sm opacity-70 mb-2">PROMPT</div>
-        <div className="text-3xl font-extrabold">{currentQ?.prompt}</div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-5 mt-8">
-        <div className="space-y-4">
-          {left.map((a, i) => (
-            <Tile key={a.id} slotIndex={i * 2} a={a} />
-          ))}
-        </div>
-
-        <div className="space-y-4">
-          {right.map((a, i) => (
-            <Tile key={a.id} slotIndex={i * 2 + 1} a={a} />
-          ))}
-        </div>
-      </div>
-
-      <div className="flex justify-between mt-10">
-        <button
-          onClick={prevQuestion}
-          disabled={qIndex === 0}
-          className="rounded-lg bg-white/10 px-5 py-2"
-        >
-          ← Previous
-        </button>
-
-        <button
-          onClick={nextQuestion}
-          disabled={qIndex >= questions.length - 1}
-          className="rounded-lg bg-white/10 px-5 py-2"
-        >
-          Next →
-        </button>
       </div>
     </main>
   );
