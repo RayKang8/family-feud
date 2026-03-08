@@ -21,6 +21,7 @@ export default function DashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   async function requireUserOrRedirect() {
     const { data, error } = await supabase.auth.getUser();
@@ -46,7 +47,6 @@ export default function DashboardPage() {
     const { data, error } = await supabase
       .from("games")
       .select("id,title,created_at")
-      // IMPORTANT: only show THIS user's games
       .eq("owner_id", user.id)
       .order("created_at", { ascending: false });
 
@@ -91,6 +91,29 @@ export default function DashboardPage() {
     router.push(`/create/${data.id}`);
   }
 
+  async function deleteGame(gameId: string) {
+    if (deletingId) return;
+
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this game?"
+    );
+    if (!confirmed) return;
+
+    setDeletingId(gameId);
+    setError(null);
+
+    const { error } = await supabase.from("games").delete().eq("id", gameId);
+
+    if (error) {
+      setError(error.message);
+      setDeletingId(null);
+      return;
+    }
+
+    setGames((prev) => prev.filter((g) => g.id !== gameId));
+    setDeletingId(null);
+  }
+
   async function logout() {
     if (loggingOut) return;
     setLoggingOut(true);
@@ -122,7 +145,7 @@ export default function DashboardPage() {
           <button
             onClick={createNewGame}
             disabled={creating}
-            className="rounded-lg bg-blue-700 px-4 py-2 text-white font-semibold disabled:opacity-60"
+            className="rounded-lg bg-blue-700 px-4 py-2 font-semibold text-white disabled:opacity-60"
           >
             {creating ? "Creating..." : "+ Create New Game"}
           </button>
@@ -130,14 +153,14 @@ export default function DashboardPage() {
           <button
             onClick={logout}
             disabled={loggingOut}
-            className="rounded-lg bg-red-600 px-4 py-2 text-white font-semibold disabled:opacity-60"
+            className="rounded-lg bg-red-600 px-4 py-2 font-semibold text-white disabled:opacity-60"
           >
             {loggingOut ? "Logging out..." : "Logout"}
           </button>
         </div>
       </div>
 
-      <h2 className="text-xl font-semibold mt-10 mb-4">My Games</h2>
+      <h2 className="mb-4 mt-10 text-xl font-semibold">My Games</h2>
 
       {error && <p className="text-red-400">Error: {error}</p>}
 
@@ -150,7 +173,7 @@ export default function DashboardPage() {
           {games.map((g) => (
             <div
               key={g.id}
-              className="rounded-xl border border-white/10 p-5 flex items-center justify-between"
+              className="flex items-center justify-between rounded-xl border border-white/10 p-5"
             >
               <div>
                 <div className="font-semibold">{g.title}</div>
@@ -166,12 +189,21 @@ export default function DashboardPage() {
                 >
                   Play
                 </Link>
+
                 <Link
                   href={`/create/${g.id}`}
                   className="rounded bg-yellow-600 px-3 py-1.5 text-sm font-semibold text-white"
                 >
                   Edit
                 </Link>
+
+                <button
+                  onClick={() => deleteGame(g.id)}
+                  disabled={deletingId === g.id}
+                  className="rounded bg-red-700 px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-60"
+                >
+                  {deletingId === g.id ? "Deleting..." : "Delete"}
+                </button>
               </div>
             </div>
           ))}
