@@ -69,15 +69,6 @@ Open in your browser
 
 [http://localhost:3000](http://localhost:3000)
 
-## Environment Variables
-
-Create a .env.local file in the root of the project with the following values:
-
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-
-These values can be found in your Supabase project settings.
-
 ## Future Improvements
 
 Add team score tracking
